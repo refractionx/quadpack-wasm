@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+    <head>
+        <title>SLATEC QUADPACK WASM Example</title>
+    </head>
+<body>
+<script type="module">
+
+    const module = await WebAssembly.compileStreaming(fetch("./bin/rfx-quadpack.wasm"))
+
+    class RFXQuadPack {
+        constructor(integrand) {
+            this.memory = new WebAssembly.Memory({
+                initial: 2,
+                maximum: 100,
+            })
+            this.float32Memory = new Float32Array(this.memory.buffer)
+            this.integrand = integrand
+            const that = this;
+            const float32Memory = this.float32Memory
+            this.env = {
+                memory: this.memory,
+                _FortranAioBeginExternalListOutput: function() {
+                    console.log('_FortranAioBeginExternalListOutput')
+                    console.log(arguments)
+                },
+                _FortranAioOutputAscii: function() {
+                    console.log('_FortranAioOutputAscii')
+                    console.log(arguments)
+                },
+                _FortranAioOutputReal32: function() {
+                    console.log('_FortranAioOutputReal32')
+                    console.log(arguments)
+                },_FortranAioEndIoStatement: function() {
+                    console.log('_FortranAioEndIoStatement')
+                    console.log(arguments)
+                }
+                ,_FortranAioOutputInteger32: function() {
+                    console.log('_FortranAioOutputInteger32')
+                    console.log(arguments)
+                },
+                powf: function(a, b) {
+                    console.log('powf', a, b)
+                    return Math.pow(a, b)
+                },
+                // XERMSG stub
+                rfxsl0_: function() {
+                    console.log('XERMSG Called');
+                    return;
+                },
+                // QAGSE helper function, called from FORTRAN
+                rfxqp2: function() {
+                    const x = float32Memory[arguments[0]/4]
+                    return that.integrand(x)
+                },
+            }
+            
+        }
+
+        async init() {
+            const importObject = {
+                env: this.env
+            };
+
+            this.instance = await WebAssembly.instantiate(module, importObject);
+        }
+
+        setIntegrand(integrand) {
+            this.integrand = integrand
+        }
+
+        qagse(a, b, limit) {
+            if (limit > 50) {
+                throw new Error('max limit set to 50')
+            }
+            return this.instance.exports.rfxqp1(a, b, limit)
+        }
+    }
+    
+    const qpack = new RFXQuadPack(function (x) {
+        return Math.pow(x, 2)
+    })
+
+    await qpack.init();
+
+    const result = qpack.qagse(0, 1, 50)
+
+    qpack.setIntegrand(function (x) {
+        return 2.0
+    })
+
+    const result2 = qpack.qagse(0, 2, 50);
+
+    document.write(result + '\n' + result2)
+
+</script>
+
+</body>
+</html>

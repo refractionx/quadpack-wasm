@@ -1,0 +1,1 @@
+flang -g lib/qagie.f lib/qagse.f lib/qelg.f lib/qk15i.f lib/qk21.f lib/qpsrt.f lib/r1mach.f stub.f rfx-quadpack.f test.f -o bin/rfx-quadpack-test && ./bin/rfx-quadpack-test.exe
