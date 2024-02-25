@@ -8,13 +8,13 @@ It consists in compiling the original FORTRAN 77 sources using flang (LLVM) and 
 
 ## Why?
 
-I couldn't find usable libraries running in the browser for quadrature methods. Most scientific frameworks like SciPy, R or GSL rebuild or rewrite QUADPACK, but using those directly on the web greatly increases the application size or have license constraints.
+I couldn't find usable libraries running in the browser for quadrature methods. Most scientific frameworks like SciPy, R or GSL rebuild or rewrite QUADPACK, but using those directly on the web greatly increases the application size or has license constraints.
 
 As an example using SciPy on pyodide (which also pulls a WASM runtime, numpy and BLAS, etc...) can quickly grow beyond 200MB.
 
 ## Tools
 
-MinGW + Flang 17 + LLVM 17 + LLD 17
+Build: MinGW + Flang 17 + LLVM 17 + LLD 17
 
 ## Files & Folders
 
@@ -24,10 +24,14 @@ MinGW + Flang 17 + LLVM 17 + LLD 17
 - bin/
   - rfx-quadpack-test.exe - simple test executable
   - rfx-quadpack.wasm - WASM build
-- index.html - example web page
+- index.html - example usage in the browser
+- example.py - example usage python with Wasmtime
 - stub.f - Stubbed functions to simplify the build
 - rfx-quadpack.f - Helper functions to simplify calling into QUADPACK
 - test.f - Test programs
+- requirements.txt - Dependencies for the python example
+- build-run-test.sh - Builds and runs a test executable
+- build-run-wasm.sh - Builds the WASM and serves the static page with python -m http.server
 
 ## Mappings
 
@@ -35,19 +39,20 @@ Temporary workaround FORTRAN's name length limitations.
 
 | Name        | Description                      |
 | ----------- | -------------------------------- |
-| rfxsl0_     | JavaScript substitute for XERMSG |
+| rfxsl0_     | External substitute for XERMSG   |
 | rfxqp1      | Entrypoint for QAGSE             |
-| rfxqp2      | JavaScript integrand for QAGSE   |
+| rfxqp2      | External integrand for QAGSE     |
 
 
 ## Changelog
 
+- Added python example with Wasmtime
 - Working QAGSE
 
 
 ## TODO
 
-- For some reason I cannot get a function pointer passed from JavaScript as the integrand argument working
+- Get a function pointer passed as an argument to FORTRAN working
 - Add more functions
 - Add double precision versions
 - Add more tests
